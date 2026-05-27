@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'projects'>;
+}
+
+const { entry } = Astro.props;
+const { stack, role, status, links } = entry.data;
+---
+
+<dl class="meta-block" aria-label="project metadata">
+  <dt>stack</dt>
+  <dd>{stack.join(' · ')}</dd>
+  <dt>role</dt>
+  <dd>{role}</dd>
+  <dt>status</dt>
+  <dd>
+    <span>{status}</span>
+    {
+      links.map((link) => (
+        <Fragment>
+          <span class="meta-sep" aria-hidden="true">
+            {' '}
+            &middot;{' '}
+          </span>
+          <a href={link.href} rel="noopener noreferrer">
+            {link.label}
+          </a>
+        </Fragment>
+      ))
+    }
+  </dd>
+</dl>

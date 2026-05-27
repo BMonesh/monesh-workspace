@@ -1,0 +1,31 @@
+---
+title: Decoupling the Monorepo
+subtitle: When the shared-tooling tax exceeds the integration discount
+lede: Most monorepos start as a tooling reflex and end as an organizational liability. Here's how I'd notice early and what I'd do about it.
+readingTime: 12
+draft: false
+---
+
+## The premise
+
+The monorepo argument is usually framed as a question of dependency consistency. That's a real benefit, but it's a second-order one — the first-order benefit is reduced communication overhead between teams that ship the same surface[^1].
+
+When teams stop shipping the same surface, the communication overhead reverses. The shared tooling layer becomes a coordination tax instead of a coordination discount.
+
+## How to notice
+
+The clearest signal is `git log --stat` over six months. If 80% of commits touch one team's directory and not the rest, the integration value of the monorepo is approaching zero.
+
+```ts
+const team = (commit: Commit) =>
+  commit.files[0]?.split('/')[1] ?? 'unknown';
+const histogram = countBy(commits.map(team));
+```
+
+## What I'd do differently
+
+- Start with a polyrepo and consolidate later if integration friction actually shows up.
+- Treat the build orchestrator as replaceable infrastructure, not as the organizational center.
+- Measure the coordination tax explicitly — PR review latency across team boundaries is the cleanest proxy.
+
+[^1]: This is the version of the argument I find most defensible. Conway's Law isn't a metaphor here — it's a literal repository-topology constraint.

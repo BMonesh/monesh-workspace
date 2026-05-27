@@ -1,0 +1,32 @@
+---
+// Spec §3.5 pragmatic version for PR 4: sticky `on this page` TOC.
+// Footnote-definition extraction into this rail is deferred to a later PR;
+// see global.css `[data-footnotes]` rules for the temporary bottom-of-article
+// styling.
+
+type Heading = { slug: string; depth: number; text: string };
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+<aside class="footnote-rail" aria-label="on this page">
+  {
+    tocHeadings.length > 0 && (
+      <Fragment>
+        <div class="footnote-rail-label">on this page</div>
+        <nav>
+          {tocHeadings.map((h) => (
+            <a href={`#${h.slug}`} class={`depth-${h.depth}`}>
+              {h.text}
+            </a>
+          ))}
+        </nav>
+      </Fragment>
+    )
+  }
+</aside>

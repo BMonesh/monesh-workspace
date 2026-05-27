@@ -1,0 +1,30 @@
+---
+import Base from './Base.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import MetaBlock from '../components/MetaBlock.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'projects'>;
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+---
+
+<Base
+  title={`${data.title} — monesh`}
+  description={data.subtitle ?? `${data.title} — project by Monesh B.`}
+>
+  <Breadcrumb />
+  <h1 class="page-h1 project-h1">{data.title}</h1>
+  {data.subtitle && <p class="page-subline">{data.subtitle}</p>}
+  <MetaBlock entry={entry} />
+  <article class="prose-project">
+    <slot />
+  </article>
+</Base>
+
+<script>
+  import '../scripts/copy-code';
+</script>

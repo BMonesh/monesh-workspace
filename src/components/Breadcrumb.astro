@@ -1,0 +1,33 @@
+---
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const segments = pathname === '/' ? [] : pathname.split('/').filter(Boolean);
+
+type Crumb = { label: string; href: string | null };
+
+const crumbs: Crumb[] = [{ label: '~/monesh', href: '/' }];
+let acc = '';
+segments.forEach((seg, i) => {
+  acc += '/' + seg;
+  const isLast = i === segments.length - 1;
+  crumbs.push({ label: seg, href: isLast ? null : acc });
+});
+---
+
+<nav class="breadcrumb" aria-label="breadcrumb">
+  {
+    crumbs.map((c, i) => (
+      <Fragment>
+        {i > 0 && (
+          <span class="sep" aria-hidden="true">
+            /
+          </span>
+        )}
+        {c.href ? (
+          <a href={c.href}>{c.label}</a>
+        ) : (
+          <span class="crumb-last">{c.label}</span>
+        )}
+      </Fragment>
+    ))
+  }
+</nav>

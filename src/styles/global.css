@@ -286,3 +286,413 @@ body {
   padding: 0 3px;
   color: var(--ink-3);
 }
+
+/* ============================================================
+   Prose typography — spec §2.3, §4.2, §4.3
+   ============================================================ */
+
+.prose-essay,
+.prose-project {
+  color: var(--ink-2);
+  font-family: var(--font-serif);
+}
+
+.prose-essay {
+  font-size: 15.5px;
+  line-height: 1.7;
+  max-width: var(--measure);
+}
+
+.prose-project {
+  font-size: 15px;
+  line-height: 1.65;
+  max-width: var(--measure-narrow);
+}
+
+.prose-essay p,
+.prose-project p {
+  margin: 0 0 1.1em;
+}
+
+.prose-essay h2,
+.prose-project h2 {
+  margin: 1.8em 0 0.6em;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
+.prose-essay a,
+.prose-project a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+  text-underline-offset: 3px;
+}
+
+.prose-essay ul,
+.prose-project ul,
+.prose-essay ol,
+.prose-project ol {
+  margin: 0 0 1.1em 1.4em;
+  padding: 0;
+}
+
+.prose-essay li,
+.prose-project li {
+  margin-bottom: 0.3em;
+}
+
+.prose-essay blockquote,
+.prose-project blockquote {
+  margin: 1.2em 0;
+  padding-left: 1em;
+  border-left: 0.5px solid var(--mute-3);
+  color: var(--mute);
+  font-style: italic;
+}
+
+/* ============================================================
+   Inline code — spec §3.7
+   ============================================================ */
+
+.prose-essay code,
+.prose-project code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--paper-3);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--ink-3);
+}
+
+.prose-essay pre code,
+.prose-project pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ============================================================
+   Block code — spec §3.8 (Shiki dual themes)
+   ============================================================ */
+
+[data-theme='dark'] .astro-code,
+[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+pre.astro-code {
+  position: relative;
+  margin: 1.2em 0;
+  padding: 30px 14px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+pre.astro-code[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--mute-2);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+}
+
+pre.astro-code .line {
+  display: block;
+}
+
+pre.astro-code[data-line-numbers] code {
+  counter-reset: line;
+}
+
+pre.astro-code[data-line-numbers] .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2em;
+  margin-right: 1em;
+  text-align: right;
+  color: var(--mute-2);
+  user-select: none;
+}
+
+.codeblock-copy {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mute-2);
+  background: transparent;
+  border: 0.5px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.codeblock-copy:hover {
+  background: var(--paper-3);
+  color: var(--ink-3);
+  border-color: var(--mute-3);
+}
+
+.codeblock-copy:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.codeblock-copy[data-state='copied'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.codeblock-copy svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================================
+   Footnotes — pragmatic PR 4 styling
+   Markers accent-colored; section renders at bottom of article.
+   Full rail extraction deferred to a follow-up PR.
+   ============================================================ */
+
+.prose-essay sup a[href^='#user-content-fn-'],
+.prose-essay a[data-footnote-ref] {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose-essay [data-footnotes] {
+  margin-top: 3em;
+  padding-top: 1.2em;
+  border-top: 0.5px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+.prose-essay [data-footnotes] h2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mute-2);
+  font-weight: 400;
+  margin: 0 0 0.6em;
+}
+
+.prose-essay [data-footnotes] ol {
+  padding-left: 1.4em;
+  margin: 0;
+}
+
+.prose-essay [data-footnotes] li {
+  margin-bottom: 0.3em;
+}
+
+.prose-essay [data-footnotes] a {
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+}
+
+/* ============================================================
+   MetaBlock — spec §3.4
+   ============================================================ */
+
+.meta-block {
+  margin: 1.2em 0 2em;
+  padding: 0.8em 0;
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  row-gap: 4px;
+  font-family: var(--font-mono);
+}
+
+.meta-block dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mute-2);
+  align-self: center;
+}
+
+.meta-block dd {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.meta-block a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+  text-underline-offset: 3px;
+}
+
+.meta-block .meta-sep {
+  color: var(--mute-3);
+}
+
+/* ============================================================
+   Breadcrumb — spec §3.6
+   ============================================================ */
+
+.breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  margin-bottom: 0.8em;
+}
+
+.breadcrumb a {
+  color: var(--mute);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--ink-3);
+}
+
+.breadcrumb .crumb-last {
+  color: var(--ink-3);
+}
+
+.breadcrumb .sep {
+  color: var(--mute-3);
+  margin: 0 0.4em;
+}
+
+/* ============================================================
+   Page title + sub-line + lede — spec §4.2, §4.3
+   ============================================================ */
+
+.page-h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0 0 0.2em;
+}
+
+.page-h1.essay-h1 {
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.page-h1.project-h1 {
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.page-subline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  margin: 0 0 1em;
+}
+
+.page-lede {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 1.5em;
+  max-width: 60ch;
+}
+
+/* ============================================================
+   Essay grid + FootnoteRail — spec §3.5, §8
+   ============================================================ */
+
+.essay-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.essay-grid > .footnote-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .essay-grid {
+    grid-template-columns: minmax(0, 1fr) 140px;
+    column-gap: 28px;
+  }
+
+  .essay-grid > .footnote-rail {
+    display: block;
+  }
+}
+
+.footnote-rail {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--mute);
+}
+
+@media (min-width: 1024px) {
+  .footnote-rail {
+    position: sticky;
+    top: var(--pane-pad-y);
+    align-self: start;
+  }
+}
+
+.footnote-rail-label {
+  font-size: 10px;
+  color: var(--mute-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5em;
+}
+
+.footnote-rail nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.footnote-rail a {
+  color: var(--mute);
+  text-decoration: none;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.footnote-rail a:hover {
+  color: var(--ink-3);
+}
+
+.footnote-rail a.depth-3 {
+  padding-left: 0.6em;
+}

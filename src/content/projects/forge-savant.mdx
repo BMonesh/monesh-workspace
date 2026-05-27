@@ -1,0 +1,42 @@
+---
+title: Forge Savant
+subtitle: Build-system observability for monorepos
+stack:
+  - TypeScript
+  - Bun
+  - esbuild
+  - Cloudflare Workers
+role: Sole engineer
+status: WIP
+links:
+  - label: github
+    href: https://github.com/BMonesh/forge-savant
+featured: true
+draft: false
+---
+
+## What it is
+
+A build-system observability layer for monorepos that surfaces per-target hit/miss telemetry without a vendor in the middle. Drops in next to `turbo` or `nx` and emits trace events compatible with OpenTelemetry.
+
+The interesting part is the `forge-savant.config.ts` schema — see below for the minimum-viable shape.
+
+## Configuration
+
+```ts lineNumbers
+import { defineConfig } from 'forge-savant';
+
+export default defineConfig({
+  cache: { strategy: 'content-addressed' },
+  emit: { sinks: ['otlp', 'stdout'] },
+  targets: {
+    build: { runner: 'bun', timeoutMs: 300_000 },
+  },
+});
+```
+
+## What I'd skip next time
+
+- The fancy custom cache adapter. Just use the host CI's cache.
+- Premature pluggability on the emit sinks.
+- Treating the orchestrator as a framework instead of a library.

@@ -1,0 +1,40 @@
+---
+import Base from './Base.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import FootnoteRail from '../components/FootnoteRail.astro';
+import type { CollectionEntry } from 'astro:content';
+
+type Heading = { slug: string; depth: number; text: string };
+
+interface Props {
+  entry: CollectionEntry<'writing'>;
+  headings: Heading[];
+}
+
+const { entry, headings } = Astro.props;
+const { data } = entry;
+const readTime = data.readingTime ? `${data.readingTime} min` : null;
+const subline = ['markdown', readTime].filter(Boolean).join(' · ');
+---
+
+<Base
+  title={`${data.title} — monesh`}
+  description={data.subtitle ?? data.lede ?? data.title}
+>
+  <Breadcrumb />
+  <div class="essay-grid">
+    <div class="essay-main">
+      <h1 class="page-h1 essay-h1">{data.title}</h1>
+      <p class="page-subline">{subline}</p>
+      {data.lede && <p class="page-lede">{data.lede}</p>}
+      <article class="prose-essay">
+        <slot />
+      </article>
+    </div>
+    <FootnoteRail headings={headings} />
+  </div>
+</Base>
+
+<script>
+  import '../scripts/copy-code';
+</script>
