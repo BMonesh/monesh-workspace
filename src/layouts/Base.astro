@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { ViewTransitions } from 'astro:transitions';
 import StatusBar from '../components/StatusBar.astro';
 import FileTree from '../components/FileTree.astro';
+import CommandPalette from '../components/CommandPalette.astro';
 
 interface Props {
   title?: string;
@@ -70,5 +71,6 @@ const {
       </main>
     </div>
     <StatusBar />
+    <CommandPalette />
   </body>
 </html>

@@ -1,6 +1,9 @@
 ---
-// PR 1 stub. Real per-route grammar lands later (spec §3.2).
-// Renders the locked left/right cluster anatomy with `● ready · scaffold`.
+// PR 3: dual-mode status bar.
+// In `ready` mode (default): `● ready · scaffold` + `⌘K palette` button.
+// In `palette` mode: `● palette · N result(s) · fuzzy: subsequence` + `esc dismiss`.
+// The CommandPalette controller swaps modes by toggling [data-when] hidden
+// state and rewriting [data-statusbar-mode] / [data-statusbar-context] text.
 ---
 
 <footer
@@ -8,14 +11,30 @@
   style="padding: 8px 14px;"
   aria-label="status bar"
 >
-  <div class="flex items-center gap-1">
+  <div data-statusbar-left class="flex items-center gap-1">
     <span class="text-accent" aria-hidden="true">●</span>
-    <span>ready</span>
+    <span data-statusbar-mode>ready</span>
     <span class="text-mute-3" aria-hidden="true">&middot;</span>
-    <span>scaffold</span>
+    <span data-statusbar-context>scaffold</span>
+    <span
+      class="text-mute-3"
+      aria-hidden="true"
+      data-when="palette"
+      hidden
+    >&middot;</span>
+    <span data-when="palette" hidden>fuzzy: subsequence</span>
   </div>
-  <div class="flex items-center gap-1 text-mute-2">
-    <span aria-hidden="true">&#8984;K</span>
-    <span>palette</span>
+  <div data-statusbar-right class="flex items-center gap-1">
+    <button
+      type="button"
+      data-palette-trigger
+      data-when="ready"
+      class="flex items-center gap-1 text-mute-2 hover:text-ink-3 focus-visible:text-ink-3 focus-visible:outline-none focus-visible:underline"
+      aria-label="open command palette"
+    >
+      <span aria-hidden="true">&#8984;K</span>
+      <span>palette</span>
+    </button>
+    <span data-when="palette" hidden>esc dismiss</span>
   </div>
 </footer>
