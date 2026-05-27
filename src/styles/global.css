@@ -5,7 +5,7 @@
 /* ============================================================
    Design tokens — spec §2.1 / §2.2
    PR 1 uses system font stacks. Self-hosted Plex Mono and
-   Source Serif 4 land in PR 2 (see README "Fonts" section).
+   Source Serif 4 land later (see README "Fonts" section).
    ============================================================ */
 
 :root,
@@ -65,4 +65,33 @@ body {
   font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   File tree row states — spec §3.1
+   ============================================================ */
+
+[data-tree-row] {
+  color: var(--ink-3);
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+[data-tree-row]:hover {
+  background: var(--paper-3);
+}
+
+[data-tree-row][aria-current='page'] {
+  background: var(--accent-bg);
+  color: var(--accent-ink);
+}
+
+[data-tree-row]:focus {
+  outline: none;
+}
+
+[data-tree-row]:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }

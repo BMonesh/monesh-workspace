@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
 import StatusBar from '../components/StatusBar.astro';
+import FileTree from '../components/FileTree.astro';
 
 interface Props {
   title?: string;
@@ -22,6 +24,7 @@ const {
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
     <title>{title}</title>
+    <ViewTransitions />
     <script is:inline>
       (function () {
         try {
@@ -46,12 +49,26 @@ const {
   <body class="min-h-screen flex flex-col">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-paper-2 focus:text-ink focus:px-2 focus:py-1 focus:rounded-sm"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-paper-2 focus:text-ink focus:px-2 focus:py-1 focus:rounded-sm focus:z-10"
       >skip to content</a
     >
-    <main id="main" class="flex-1">
-      <slot />
-    </main>
+    <div class="flex-1 grid lg:grid-cols-[var(--rail-w)_1fr] min-h-0">
+      <aside
+        class="hidden lg:block border-r-[0.5px] overflow-y-auto"
+        aria-label="workspace"
+      >
+        <FileTree />
+      </aside>
+      <main
+        id="main"
+        class="min-w-0"
+        style="padding: var(--pane-pad-y) var(--pane-pad-x);"
+      >
+        <div class="max-w-[68ch]">
+          <slot />
+        </div>
+      </main>
+    </div>
     <StatusBar />
   </body>
 </html>

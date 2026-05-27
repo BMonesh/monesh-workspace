@@ -1,0 +1,136 @@
+---
+type FileNode = {
+  label: string;
+  href: string;
+  featured?: boolean;
+};
+
+type FolderNode = {
+  label: string;
+  href: string;
+  expanded: boolean;
+  children?: FileNode[];
+};
+
+const tree: FolderNode[] = [
+  {
+    label: 'projects',
+    href: '/projects',
+    expanded: true,
+    children: [
+      { label: 'forge-savant', href: '/projects/forge-savant', featured: true },
+      { label: 'routemate', href: '/projects/routemate' },
+      { label: 'plantpal', href: '/projects/plantpal' },
+      { label: 'mc-modding', href: '/projects/mc-modding' },
+    ],
+  },
+  {
+    label: 'writing',
+    href: '/writing',
+    expanded: true,
+    children: [
+      {
+        label: 'decoupling-the-monorepo',
+        href: '/writing/decoupling-the-monorepo',
+        featured: true,
+      },
+    ],
+  },
+  { label: 'about', href: '/about', expanded: false },
+  { label: 'contact', href: '/contact', expanded: false },
+];
+
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+// Spec §4.1 — on `/` the about node is the active selection.
+const activePath = pathname === '/' ? '/about' : pathname;
+
+const allHrefs: string[] = [];
+for (const node of tree) {
+  allHrefs.push(node.href);
+  if (node.children && node.expanded) {
+    for (const c of node.children) allHrefs.push(c.href);
+  }
+}
+const focusTarget = allHrefs.includes(activePath) ? activePath : allHrefs[0];
+---
+
+<nav
+  class="font-mono text-[12px] leading-[1.45] h-full"
+  style="padding: 12px 8px;"
+  aria-label="workspace tree"
+>
+  <div
+    class="text-mute-2 uppercase tracking-[0.06em] text-[10px] mb-2 px-2"
+    aria-hidden="true"
+  >
+    workspace
+  </div>
+  <ul role="tree" data-file-tree class="flex flex-col">
+    {
+      tree.map((node) => {
+        const folderActive = node.href === activePath;
+        const caret = node.children ? (node.expanded ? '▾' : '▸') : '▸';
+        return (
+          <li role="none">
+            <a
+              href={node.href}
+              role="treeitem"
+              aria-current={folderActive ? 'page' : undefined}
+              aria-expanded={node.children ? String(node.expanded) : undefined}
+              data-tree-row
+              tabindex={focusTarget === node.href ? 0 : -1}
+              class="flex items-center gap-1 px-2 py-[3px]"
+            >
+              <span
+                class="w-3 inline-flex justify-center text-mute-2"
+                aria-hidden="true"
+              >
+                {caret}
+              </span>
+              <span class="flex-1 truncate">{node.label}</span>
+              {folderActive && (
+                <span class="text-accent text-[10px]" aria-hidden="true">
+                  ●
+                </span>
+              )}
+            </a>
+            {node.children && node.expanded && (
+              <ul role="group" class="flex flex-col">
+                {node.children.map((child) => {
+                  const childActive = child.href === activePath;
+                  return (
+                    <li role="none">
+                      <a
+                        href={child.href}
+                        role="treeitem"
+                        aria-current={childActive ? 'page' : undefined}
+                        data-tree-row
+                        tabindex={focusTarget === child.href ? 0 : -1}
+                        class="flex items-center gap-1 py-[3px] pl-7 pr-2"
+                      >
+                        <span class="flex-1 truncate">{child.label}</span>
+                        {childActive ? (
+                          <span class="text-accent text-[10px]" aria-hidden="true">
+                            ●
+                          </span>
+                        ) : child.featured ? (
+                          <span class="text-ink-3 text-[10px]" aria-hidden="true">
+                            ★
+                          </span>
+                        ) : null}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<script>
+  import '../scripts/file-tree-nav';
+</script>
