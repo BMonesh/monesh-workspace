@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Design tokens — spec §2.1 / §2.2
+   PR 1 uses system font stacks. Self-hosted Plex Mono and
+   Source Serif 4 land in PR 2 (see README "Fonts" section).
+   ============================================================ */
+
+:root,
+:root[data-theme='light'] {
+  --ink: #0a0a0a;
+  --ink-2: #1a1a18;
+  --ink-3: #2a2a28;
+  --mute: #6b6b66;
+  --mute-2: #9a9a93;
+  --mute-3: #c8c7c0;
+  --paper: #fafaf7;
+  --paper-2: #f4f3ed;
+  --paper-3: #f0efe9;
+  --border: rgba(10, 10, 10, 0.1);
+  --accent: #2c5fff;
+  --accent-bg: #e6ebff;
+  --accent-ink: #1a3fbf;
+  --danger: #a32d2d;
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-serif: Georgia, Cambria, 'Times New Roman', serif;
+
+  --rail-w: 200px;
+  --measure: 68ch;
+  --measure-narrow: 60ch;
+  --pane-pad-x: 28px;
+  --pane-pad-y: 22px;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ink: #e8e7e2;
+  --ink-2: #d8d7d2;
+  --ink-3: #c8c7c0;
+  --mute: #8a8a82;
+  --mute-2: #5f5e58;
+  --mute-3: #3f3f3a;
+  --paper: #0e0e0c;
+  --paper-2: rgba(24, 24, 21, 0.5);
+  --paper-3: rgba(232, 231, 226, 0.07);
+  --border: rgba(232, 231, 226, 0.08);
+  --accent: #4c7bff;
+  --accent-bg: #1a2a55;
+  --accent-ink: #9db6ff;
+  --danger: #e24b4a;
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
