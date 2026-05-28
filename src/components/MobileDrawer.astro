@@ -1,0 +1,37 @@
+---
+import FileTree from './FileTree.astro';
+// Slide-out drawer for mobile navigation. Hidden on desktop via CSS.
+// Contains its own FileTree instance — file-tree-nav.ts initializes
+// both this one and the desktop-aside one independently (PR 8).
+---
+
+<div
+  id="mobile-drawer"
+  data-open="false"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="mobile-drawer-label"
+  aria-hidden="true"
+>
+  <div data-drawer-scrim></div>
+  <aside data-drawer-panel>
+    <div class="drawer-header">
+      <h2 id="mobile-drawer-label" class="drawer-header-title">navigation</h2>
+      <button
+        type="button"
+        class="drawer-close-btn"
+        data-drawer-close
+        aria-label="close navigation"
+      >
+        <kbd>esc</kbd>
+      </button>
+    </div>
+    <div class="drawer-content">
+      <FileTree />
+    </div>
+  </aside>
+</div>
+
+<script>
+  import '../scripts/mobile-drawer';
+</script>

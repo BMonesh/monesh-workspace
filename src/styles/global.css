@@ -31,10 +31,18 @@
   --rail-w: 200px;
   --measure: 68ch;
   --measure-narrow: 60ch;
-  --pane-pad-x: 28px;
-  --pane-pad-y: 22px;
+  --pane-pad-x: 16px;
+  --pane-pad-y: 16px;
 
   color-scheme: light;
+}
+
+@media (min-width: 1024px) {
+  :root,
+  :root[data-theme='light'] {
+    --pane-pad-x: 28px;
+    --pane-pad-y: 22px;
+  }
 }
 
 :root[data-theme='dark'] {
@@ -1001,6 +1009,261 @@ pre.astro-code[data-line-numbers] .line::before {
     color: var(--ink-2);
   }
   .hero-skip-hint {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Mobile top bar — spec §8 (PR 8)
+   ============================================================ */
+
+.mobile-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 8px 0 4px;
+  background: var(--paper-2);
+  border-bottom: 0.5px solid var(--border);
+}
+
+@media (min-width: 1024px) {
+  .mobile-topbar {
+    display: none;
+  }
+}
+
+.mobile-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--paper-3);
+}
+
+.mobile-menu-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.mobile-breadcrumb {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.mobile-breadcrumb-prefix {
+  color: var(--mute-2);
+}
+
+.mobile-breadcrumb-sep {
+  color: var(--mute-3);
+  margin: 0 0.3em;
+}
+
+.mobile-breadcrumb-last {
+  color: var(--ink-3);
+}
+
+.mobile-palette-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 7px;
+  background: var(--paper);
+  border: 0.5px solid var(--mute-3);
+  border-bottom-width: 1px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  cursor: pointer;
+}
+
+.mobile-palette-btn:hover {
+  color: var(--ink-3);
+}
+
+.mobile-palette-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* ============================================================
+   Mobile drawer — spec §7 / §8 / §9 (PR 8)
+   ============================================================ */
+
+#mobile-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#mobile-drawer[data-open='true'] {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (min-width: 1024px) {
+  #mobile-drawer {
+    display: none;
+  }
+}
+
+[data-drawer-scrim] {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+#mobile-drawer[data-open='true'] [data-drawer-scrim] {
+  opacity: 1;
+}
+
+[data-drawer-panel] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(280px, 85vw);
+  background: var(--paper);
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 200ms ease-out;
+}
+
+#mobile-drawer[data-open='true'] [data-drawer-panel] {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.drawer-header-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--mute-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.drawer-close-btn:hover {
+  background: var(--paper-3);
+}
+
+.drawer-close-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.drawer-close-btn kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border: 0.5px solid var(--mute-3);
+  border-bottom-width: 1px;
+  border-radius: 3px;
+  color: var(--ink-3);
+  background: var(--paper);
+}
+
+.drawer-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-drawer-scrim],
+  [data-drawer-panel] {
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ============================================================
+   Responsive prose / hero adjustments — spec §8
+   ============================================================ */
+
+@media (max-width: 1023px) {
+  .prose-essay,
+  .prose-project {
+    font-size: 14px;
+    max-width: none;
+  }
+
+  .page-h1.essay-h1 {
+    font-size: 22px;
+  }
+
+  .page-h1.project-h1 {
+    font-size: 20px;
+  }
+
+  .hero-p1 {
+    font-size: 24px;
+  }
+
+  .hero {
+    max-width: none;
+  }
+
+  .index-h1 {
+    font-size: 16px;
+  }
+
+  /* Index list — collapse the description column on small screens.
+     Slugs + status/date remain visible; descriptions hide. */
+  .index-row-projects {
+    grid-template-columns: minmax(120px, 1fr) 80px 16px;
+  }
+  .index-row-projects .index-desc {
+    display: none;
+  }
+
+  .index-row-writing {
+    grid-template-columns: minmax(0, 1fr) 90px 16px;
+  }
+  .index-row-writing .index-readtime,
+  .index-row-writing .index-desc {
     display: none;
   }
 }

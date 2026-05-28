@@ -291,6 +291,9 @@ function updateStatusBar(): void {
     .forEach((el) => {
       el.hidden = !state.open;
     });
+  document.querySelectorAll<HTMLElement>('[data-when="modal"]').forEach((el) => {
+    el.hidden = !state.open;
+  });
 }
 
 function openPalette(trigger: HTMLElement | null): void {

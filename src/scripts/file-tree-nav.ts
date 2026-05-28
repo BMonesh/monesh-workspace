@@ -1,10 +1,11 @@
 // Roving-tabindex keyboard navigation for the workspace tree.
 // Spec §3.1: arrow keys move focus, Enter activates (browser default on <a>).
 // Vim keys (j/k/h/l/gg/G) and folder expand/collapse defer to a later PR.
+//
+// PR 8 — handles multiple [data-file-tree] instances independently
+// (desktop aside + mobile drawer each render their own FileTree).
 
-function setup(): void {
-  const tree = document.querySelector<HTMLElement>('[data-file-tree]');
-  if (!tree) return;
+function setupTree(tree: HTMLElement): void {
   if (tree.dataset.initialized === 'true') return;
   tree.dataset.initialized = 'true';
 
@@ -48,8 +49,13 @@ function setup(): void {
   });
 }
 
+function setup(): void {
+  const trees = document.querySelectorAll<HTMLElement>('[data-file-tree]');
+  trees.forEach(setupTree);
+}
+
 // `astro:page-load` fires on initial load AND on each ViewTransitions
-// navigation. The init guard inside setup() makes repeated calls idempotent.
+// navigation. The init guard inside setupTree() makes repeated calls idempotent.
 document.addEventListener('astro:page-load', setup);
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setup);

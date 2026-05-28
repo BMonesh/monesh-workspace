@@ -4,6 +4,8 @@ import { ViewTransitions } from 'astro:transitions';
 import StatusBar from '../components/StatusBar.astro';
 import FileTree from '../components/FileTree.astro';
 import CommandPalette from '../components/CommandPalette.astro';
+import MobileTopBar from '../components/MobileTopBar.astro';
+import MobileDrawer from '../components/MobileDrawer.astro';
 
 interface Props {
   title?: string;
@@ -53,6 +55,7 @@ const {
       class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-paper-2 focus:text-ink focus:px-2 focus:py-1 focus:rounded-sm focus:z-10"
       >skip to content</a
     >
+    <MobileTopBar />
     <div class="flex-1 grid lg:grid-cols-[var(--rail-w)_1fr] min-h-0">
       <aside
         class="hidden lg:block border-r-[0.5px] overflow-y-auto"
@@ -65,12 +68,13 @@ const {
         class="min-w-0"
         style="padding: var(--pane-pad-y) var(--pane-pad-x);"
       >
-        <div class="max-w-[68ch]">
+        <div class="lg:max-w-[68ch]">
           <slot />
         </div>
       </main>
     </div>
     <StatusBar />
     <CommandPalette />
+    <MobileDrawer />
   </body>
 </html>
