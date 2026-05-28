@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="404 — monesh" description="Page not found.">
+  <nav class="breadcrumb breadcrumb-404" aria-label="breadcrumb">
+    <a href="/">~/monesh</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="crumb-last crumb-danger" data-404-badpath>404</span>
+  </nav>
+
+  <div class="page-404">
+    <p class="cmd-echo" aria-hidden="true">
+      <span class="cmd-prompt">&gt;</span> cat <span data-404-cmdpath>404</span>
+    </p>
+    <p class="cmd-error">
+      cat: <span data-404-errpath>404</span>: No such file or directory
+    </p>
+
+    <dl class="meta-block status-meta" aria-label="404 status">
+      <dt>status</dt>
+      <dd><span class="status-danger">404</span></dd>
+      <dt>path</dt>
+      <dd data-404-meta-path>&mdash;</dd>
+      <dt>referrer</dt>
+      <dd data-404-meta-referrer>direct</dd>
+      <dt>closest</dt>
+      <dd><span data-404-meta-count>0</span> fuzzy matches</dd>
+    </dl>
+
+    <div class="suggestions">
+      <div class="suggestions-label">did you mean</div>
+      <ul class="suggestions-list" data-404-suggestions>
+        <li class="suggestion-empty">computing matches&hellip;</li>
+      </ul>
+    </div>
+
+    <p class="escape-hatch">
+      Or jump back to <a href="/">~/monesh</a> &middot; press
+      <kbd>&#8984;K</kbd> for the palette.
+    </p>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/page-404';
+</script>

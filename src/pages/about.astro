@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+---
+
+<Base
+  title="about — monesh"
+  description="About Monesh B. — infrastructure and tooling engineer."
+>
+  <Breadcrumb />
+  <h1 class="page-h1 essay-h1">About</h1>
+  <p class="page-subline">about.md &middot; serif</p>
+  <article class="prose-essay">
+    <p>
+      I&rsquo;m Monesh &mdash; an infrastructure and tooling engineer who builds
+      developer platforms with agentic workflows. The work under this directory
+      is the portfolio: projects with full write-ups, essays on the engineering
+      choices that got me to them.
+    </p>
+
+    <h2>How I work</h2>
+    <p>
+      I lean on agentic tools for the parts of engineering work that are
+      mechanical at scale &mdash; dependency-graph extraction, code-mod scripts,
+      exhaustive surface scans, anything tedious enough that I&rsquo;d lose track
+      doing it by hand. The judgment calls stay mine. Trust the agent&rsquo;s
+      outputs, verify them against the ground truth, codify the verification.
+      See <a href="/writing/decoupling-the-monorepo">decoupling-the-monorepo</a>
+      for a worked example.
+    </p>
+
+    <h2>Where I&rsquo;m useful</h2>
+    <p>
+      Small teams that need infrastructure work done correctly the first time.
+      Dev tooling that disappears once it works. Bounded-scope ownership of a
+      load-bearing surface &mdash; build systems, deploy pipelines, internal
+      CLIs, the kind of code that runs every day and that nobody wants to debug
+      at 3am.
+    </p>
+    <p>
+      I&rsquo;m currently in Hyderabad and open to remote roles or on-site work
+      that includes a relocation discussion.
+    </p>
+
+    <h2>How to reach me</h2>
+    <p>
+      Email is on <a href="/contact">/contact</a>. I respond within 24 hours
+      during the week.
+    </p>
+  </article>
+</Base>

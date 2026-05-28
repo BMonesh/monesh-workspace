@@ -1267,3 +1267,153 @@ pre.astro-code[data-line-numbers] .line::before {
     display: none;
   }
 }
+
+/* ============================================================
+   404 page — spec §3.6, §4.4 (PR 9)
+   ============================================================ */
+
+.breadcrumb-404 .crumb-danger {
+  color: var(--danger);
+  border-bottom: 0.5px dashed var(--danger);
+  padding-bottom: 1px;
+}
+
+.page-404 {
+  max-width: 68ch;
+}
+
+.page-404 .cmd-echo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--mute);
+  margin: 0.4em 0 4px;
+}
+
+.page-404 .cmd-prompt {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.page-404 .cmd-error {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--danger);
+  margin: 0 0 1.2em;
+}
+
+.status-meta .status-danger {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.suggestions {
+  margin: 1.2em 0;
+}
+
+.suggestions-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mute-2);
+  margin-bottom: 0.6em;
+}
+
+.suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.suggestions-list li {
+  border-bottom: 0.5px solid var(--border);
+}
+
+.suggestions-list li:last-child {
+  border-bottom: 0;
+}
+
+.suggestions-list a {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr) 80px;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+
+.suggestions-list a:hover {
+  background: var(--paper-3);
+}
+
+.suggestions-list a:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.suggestion-label {
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-href {
+  color: var(--mute);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-score {
+  color: var(--mute-2);
+  font-size: 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.suggestion-empty {
+  padding: 7px 8px;
+  color: var(--mute);
+  font-style: italic;
+  font-size: 11px;
+}
+
+.page-404 .escape-hatch {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--mute);
+  margin-top: 2em;
+}
+
+.page-404 .escape-hatch a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+  text-underline-offset: 3px;
+}
+
+.page-404 .escape-hatch kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 0.5px solid var(--mute-3);
+  border-bottom-width: 1px;
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink-3);
+}
+
+@media (max-width: 1023px) {
+  .suggestions-list a {
+    grid-template-columns: minmax(0, 1fr) 60px;
+  }
+  .suggestions-list .suggestion-href {
+    display: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 
 // Inline Shiki transformer:
 // - copies the fence language onto <pre> as `data-language` (spec §3.8 label)
@@ -37,6 +38,7 @@ export default defineConfig({
   integrations: [
     tailwind({ applyBaseStyles: false }),
     mdx({ shikiConfig }),
+    sitemap(),
   ],
   build: {
     inlineStylesheets: 'auto',

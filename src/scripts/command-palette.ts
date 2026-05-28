@@ -22,6 +22,7 @@ type VerbEntry = {
   action: 'theme' | 'navigate' | 'prefill';
   href?: string;
   prefill?: string;
+  themeMode?: 'light' | 'dark' | 'system';
 };
 
 type PathEntry = {
@@ -53,9 +54,24 @@ interface GroupedResults {
 const verbEntries: VerbEntry[] = [
   {
     kind: 'verb',
-    label: 'theme',
-    subtitle: 'toggle light/dark',
+    label: 'theme light',
+    subtitle: 'switch to light mode',
     action: 'theme',
+    themeMode: 'light',
+  },
+  {
+    kind: 'verb',
+    label: 'theme dark',
+    subtitle: 'switch to dark mode',
+    action: 'theme',
+    themeMode: 'dark',
+  },
+  {
+    kind: 'verb',
+    label: 'theme system',
+    subtitle: 'follow OS preference',
+    action: 'theme',
+    themeMode: 'system',
   },
   {
     kind: 'verb',
@@ -337,16 +353,19 @@ function selectIndex(i: number): void {
   applySelection();
 }
 
-function toggleTheme(): void {
-  const root = document.documentElement;
-  const current = root.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  root.setAttribute('data-theme', next);
+function setTheme(mode: 'light' | 'dark' | 'system'): void {
   try {
-    localStorage.setItem('monesh:theme', next);
+    localStorage.setItem('monesh:theme', mode);
   } catch {
     /* private mode — swallow */
   }
+  const effective =
+    mode === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      : mode;
+  document.documentElement.setAttribute('data-theme', effective);
 }
 
 function executeSelected(meta: boolean): void {
@@ -354,8 +373,8 @@ function executeSelected(meta: boolean): void {
   if (!r) return;
   const entry = r.entry;
   if (entry.kind === 'verb') {
-    if (entry.action === 'theme') {
-      toggleTheme();
+    if (entry.action === 'theme' && entry.themeMode) {
+      setTheme(entry.themeMode);
       closePalette();
     } else if (entry.action === 'navigate' && entry.href) {
       const href = entry.href;
