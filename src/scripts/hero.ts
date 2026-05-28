@@ -35,7 +35,7 @@ function init(): void {
   function complete(): void {
     if (completed) return;
     completed = true;
-    hero.dataset.state = 'done';
+    hero!.dataset.state = 'done';
     setStatusBar('ready');
     if (autoTimer) window.clearTimeout(autoTimer);
     ctrl.abort();
@@ -71,3 +71,5 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+export {};

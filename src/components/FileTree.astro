@@ -112,7 +112,7 @@ const focusTarget = allHrefs.includes(activePath) ? activePath : allHrefs[0];
               rel={node.external ? 'noopener noreferrer' : undefined}
               role="treeitem"
               aria-current={folderActive ? 'page' : undefined}
-              aria-expanded={node.children ? String(node.expanded) : undefined}
+              aria-expanded={node.children ? node.expanded : undefined}
               data-tree-row
               tabindex={focusTarget === node.href ? 0 : -1}
               class="flex items-center gap-1 px-2 py-[3px]"
