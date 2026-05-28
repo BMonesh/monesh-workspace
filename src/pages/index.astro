@@ -2,11 +2,39 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="monesh — scaffold ok">
-  <h1
-    class="font-serif font-medium text-ink"
-    style="font-size: 28px; line-height: 1.2; letter-spacing: -0.015em;"
-  >
-    monesh &mdash; scaffold ok
-  </h1>
+<Base
+  title="monesh — engineering portfolio"
+  description="Infrastructure and tooling engineer. Developer platforms and the agentic workflows around them."
+>
+  <div class="hero" data-state="typing">
+    <p class="hero-cmd" aria-hidden="true">
+      <span class="hero-cmd-prompt">&gt;</span> cat about.md
+    </p>
+    <p class="hero-cmd-meta" aria-hidden="true">
+      about/about.md &middot; 412 bytes &middot; serif &middot; streaming&hellip;
+    </p>
+    <div class="hero-body">
+      <h1 class="hero-p1">
+        <span class="hero-text"
+          >I&rsquo;m Monesh &mdash; an infrastructure and tooling engineer who builds
+          developer platforms with agentic workflows.</span
+        ><span class="hero-caret" aria-hidden="true">|</span>
+      </h1>
+      <p class="hero-p2">
+        The work under this directory is the portfolio: projects with full
+        write-ups, essays on the engineering choices that got me to them. Start
+        with <code>forge-savant</code> for the code, or
+        <code>decoupling-the-monorepo</code> for how I think. Press
+        <kbd>&#8984;K</kbd> for the palette; the file tree is keyboard-navigable
+        from any page.
+      </p>
+    </div>
+    <p class="hero-skip-hint" aria-hidden="true">
+      esc or any keypress to skip &middot; prefers-reduced-motion respected
+    </p>
+  </div>
 </Base>
+
+<script>
+  import '../scripts/hero';
+</script>
