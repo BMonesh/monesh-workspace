@@ -1,0 +1,54 @@
+---
+title: PlantPal
+subtitle: A team-built plant care app with cross-platform sync
+stack:
+  - Flutter
+  - Dart
+  - Firebase
+  - Firestore
+  - Riverpod
+  - GoRouter
+role: Mobile engineer (team of 3)
+status: Shipped
+links:
+  - label: github
+    href: https://github.com/BMonesh/plantpal
+featured: false
+draft: false
+---
+
+## What we built
+
+PlantPal is a mobile app for people who own more than a handful of houseplants. The user adds each plant with a species, light condition, and watering frequency; the app schedules reminders and tracks watering history. We built it as a four-person team: two engineers on Flutter, one on Firebase backend rules, one on design. I was the Flutter lead.
+
+We shipped to iOS and Android from a single Flutter codebase. At peak we had about 350 daily active users — small in absolute terms, but enough that we had to make the synchronization story correct.
+
+## Cross-platform state management
+
+Flutter's reactive model is good. The hard part is reconciling client-side state with Firestore's real-time listeners without producing rebuild loops or showing stale data after a write. We settled on Riverpod for the application state graph and used Firestore's snapshot streams as the leaf inputs.
+
+The shape that worked: each piece of server-mirrored state is a `StreamProvider` listening to a Firestore document or query. UI providers depend on these stream providers and do not write to Firestore directly — they enqueue writes via mutation methods on a dedicated `repository` provider. The repository optimistically applies the write to a local cache that the stream providers merge with the live snapshot. When the write completes, the optimistic value is dropped; if it fails, the optimistic value is rolled back and the UI shows the error.
+
+This is more ceremony than the "just call `setState` after a Firestore call" approach in the Flutter tutorials, but it eliminated the class of bugs where the UI showed two states in quick succession — the optimistic write, then a brief flicker back to the pre-write state when the snapshot arrived, then the final post-write state. That flicker is the kind of polish bug that even a small user base will report en masse if you ship it.
+
+## Firebase as backend
+
+We used Firestore for plant data, Firebase Auth for users, and FCM for the watering reminders. The reminder logic is the only piece I'd revisit.
+
+The first version scheduled local notifications client-side based on the user's plant watering frequencies. This worked until users started installing the app on a second device — the same plant generated reminders on both phones, sometimes minutes apart due to clock drift. We moved scheduling to a Firebase Function that ran every hour, computed per-user upcoming reminders, and sent FCM messages to the user's active device tokens. Reminders converged to one notification per plant per scheduled time.
+
+The Firebase Function's cold start was around 800 ms, which was acceptable because the function ran on a cron schedule rather than per-user-request. If it had been user-facing, that latency would not have flown.
+
+## The handoff points
+
+The team-of-3 engineering story is mostly about where the handoff boundaries lived. We split work along three axes: UI screens (one engineer per screen during sprint planning), state-graph contracts (jointly owned, change-by-PR-only), and Firebase rules (one owner, anything touching the rules required their sign-off).
+
+The state-graph axis was the hardest to coordinate. Two engineers editing different screens occasionally needed to add the same new piece of shared state, and the merge conflicts in `app_state.dart` were painful. We mitigated this by making `app_state.dart` thin — it composed providers from per-feature files, so most additions touched only one feature's provider file. The composition file changed maybe once a month.
+
+The Firebase rules ownership was the most boring and the most important. Mistakes in rules are silent — the rule passes locally on the simulator, then in production it lets the wrong user read the wrong document. The rule owner ran every rule change through the Firestore rules unit tester before merging. We had zero security incidents.
+
+## What I'd do differently
+
+- I'd skip the team-built optimistic cache and use Riverpod's `family` providers with stream re-emission. Our cache layer was 600 lines of code that solved a problem Riverpod can solve with maybe 50 lines if you accept slightly different ergonomics. We over-engineered.
+- I'd put the analytics events in the repository layer from the start. We added them late and discovered weeks-old gaps in the data when the product team asked "how often do users edit a plant after creating it."
+- I'd budget more time for accessibility. Flutter's a11y story is improving but it is not React Native's; screen reader support on iOS for our custom plant-card widgets needed manual semantic annotations we did not write until a user requested them. The right time to write those is when the widget is written, not when a user asks.

@@ -44,7 +44,7 @@ type Node = {
 };
 ```
 
-I told the agent: walk every `package.json` in the workspace, parse every TypeScript file under each package's `src/`, resolve every import path against the workspace `tsconfig`, classify each edge as `value` or `type`, and emit the result as one JSON document. No prose, no commentary — just the JSON. If a file failed to parse, report it as a warning at the end.
+I told the agent: walk every `package.json` in the workspace, parse every TypeScript file under each package's `src/`, resolve every import path against the workspace `tsconfig`, classify each edge as `value` or `type`[^1], and emit the result as one JSON document. No prose, no commentary — just the JSON. If a file failed to parse, report it as a warning at the end.
 
 The work took the agent about eleven minutes. The output was 1,847 edges across the twelve packages. Forty-three of those edges were unique cross-edges — distinct `(from, to)` pairs. The rest were duplicates from the same edge appearing in multiple files.
 
@@ -73,3 +73,5 @@ The host app's CI time dropped from 14 minutes to 5 minutes 30 seconds, because 
 - I'd have validated the agent's classification of `value` vs `type` imports more carefully. The agent got it right, but I checked by spot-sampling. For a load-bearing artifact, I would now add a verification pass: run TypeScript with `--listFiles --listEmittedFiles` and cross-check that the agent's edge count matches the compiler's. Trust the agent's outputs, verify them against the ground truth, and codify the verification so the next person doesn't have to re-derive it.
 
 The lesson I keep relearning is that agentic tools are good at the parts of engineering work that are mechanical at scale. A dependency graph extraction over a twelve-package workspace is mechanical at scale. The judgment calls — which cuts to make, in what order, under what risk — are still mine. The agent does not save me from making those calls; it gets me to the point where I can make them faster.
+
+[^1]: The distinction matters because TypeScript `type`-only imports compile to nothing — they don't appear in the runtime dependency graph. Six of the shim packages I collapsed were purely `type` re-exports, which is part of why they were so cheap to remove: no consumer's runtime behavior changed.

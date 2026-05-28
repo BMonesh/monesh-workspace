@@ -1,4 +1,6 @@
 ---
+import { getCollection } from 'astro:content';
+
 type FileNode = {
   label: string;
   href: string;
@@ -9,35 +11,67 @@ type FolderNode = {
   label: string;
   href: string;
   expanded: boolean;
+  external?: boolean;
   children?: FileNode[];
 };
+
+const projectEntries = await getCollection(
+  'projects',
+  ({ data }) => !data.draft
+);
+const writingEntries = await getCollection(
+  'writing',
+  ({ data }) => !data.draft
+);
+
+const statusOrder: Record<string, number> = {
+  Shipped: 0,
+  WIP: 1,
+  Archived: 2,
+};
+
+const sortedProjects = projectEntries.sort((a, b) => {
+  const sa = statusOrder[a.data.status];
+  const sb = statusOrder[b.data.status];
+  if (sa !== sb) return sa - sb;
+  return a.data.title.localeCompare(b.data.title);
+});
+
+const sortedWriting = writingEntries.sort((a, b) => {
+  const da = a.data.publishedAt?.getTime() ?? -Infinity;
+  const db = b.data.publishedAt?.getTime() ?? -Infinity;
+  return db - da;
+});
 
 const tree: FolderNode[] = [
   {
     label: 'projects',
     href: '/projects',
     expanded: true,
-    children: [
-      { label: 'forge-savant', href: '/projects/forge-savant', featured: true },
-      { label: 'routemate', href: '/projects/routemate' },
-      { label: 'plantpal', href: '/projects/plantpal' },
-      { label: 'mc-modding', href: '/projects/mc-modding' },
-    ],
+    children: sortedProjects.map((e) => ({
+      label: e.slug,
+      href: `/projects/${e.slug}`,
+      featured: e.data.featured,
+    })),
   },
   {
     label: 'writing',
     href: '/writing',
     expanded: true,
-    children: [
-      {
-        label: 'decoupling-the-monorepo',
-        href: '/writing/decoupling-the-monorepo',
-        featured: true,
-      },
-    ],
+    children: sortedWriting.map((e) => ({
+      label: e.slug,
+      href: `/writing/${e.slug}`,
+      featured: e.data.featured,
+    })),
   },
   { label: 'about', href: '/about', expanded: false },
   { label: 'contact', href: '/contact', expanded: false },
+  {
+    label: 'resume.pdf',
+    href: '/resume.pdf',
+    expanded: false,
+    external: true,
+  },
 ];
 
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -74,6 +108,8 @@ const focusTarget = allHrefs.includes(activePath) ? activePath : allHrefs[0];
           <li role="none">
             <a
               href={node.href}
+              target={node.external ? '_blank' : undefined}
+              rel={node.external ? 'noopener noreferrer' : undefined}
               role="treeitem"
               aria-current={folderActive ? 'page' : undefined}
               aria-expanded={node.children ? String(node.expanded) : undefined}
@@ -88,11 +124,15 @@ const focusTarget = allHrefs.includes(activePath) ? activePath : allHrefs[0];
                 {caret}
               </span>
               <span class="flex-1 truncate">{node.label}</span>
-              {folderActive && (
+              {folderActive ? (
                 <span class="text-accent text-[10px]" aria-hidden="true">
                   ●
                 </span>
-              )}
+              ) : node.external ? (
+                <span class="text-mute-2 text-[10px]" aria-hidden="true">
+                  ↗
+                </span>
+              ) : null}
             </a>
             {node.children && node.expanded && (
               <ul role="group" class="flex flex-col">

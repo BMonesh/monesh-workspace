@@ -1,0 +1,71 @@
+---
+title: Routemate
+subtitle: Driver-shift dispatcher for a regional Indian logistics fleet
+stack:
+  - TypeScript
+  - NestJS
+  - PostgreSQL
+  - Redis
+  - Docker
+  - GitHub Actions
+role: Sole engineer
+status: Shipped
+links:
+  - label: github
+    href: https://github.com/BMonesh/routemate
+featured: false
+draft: false
+---
+
+## The problem
+
+A regional logistics operator running goods movement across three states was dispatching their fleet from a spreadsheet. They had about 25 drivers, 30 vehicles, and 80-something active routes on any given weekday. The spreadsheet worked when they had eight drivers; at twenty-five it produced shift violations that drew attention from the labour inspector. They wanted a tool that respected the regulations automatically.
+
+Routemate is the dispatcher I built. The interesting engineering is not the routing — open-source solvers handle that well — but the shift logic that wraps every assignment decision.
+
+## The shift logic
+
+Driver hours for Indian commercial transport are governed primarily by the Motor Transport Workers Act, 1961 and the rules each state notifies under it. The constraints that mattered for this operator: a normal workday of 8 hours, with overtime allowed up to a combined 12 hours per day and 54 hours per week; a mandatory 30-minute break after 5 hours of continuous work; a minimum 12 hours of rest between shifts; one weekly off-day; and a state-level cap on consecutive driving hours that ranged from 5 to 8 depending on the state the driver was operating in.
+
+The naive implementation checked these rules at assignment time. The first version did exactly that, and the p95 latency on dispatch decisions was around 1.2 seconds with 25 drivers because every check required reading every driver's recent shift history from PostgreSQL. The dispatchers complained about the lag and started typing assignments into the old spreadsheet alongside the tool.
+
+I rewrote the shift state as a Redis-cached projection. Every minute, a worker reads the last 36 hours of completed trips from PostgreSQL and computes per-driver projections: hours worked today, hours worked this week, time since last break, projected next-required-break, and current-state driving-hour cap. The projection is stored as a Redis hash per driver. Dispatch checks read the hash instead of querying PostgreSQL.
+
+p95 dispatch latency dropped from 1.2 seconds to 180 milliseconds. The dispatchers stopped maintaining the parallel spreadsheet.
+
+## The data model
+
+The interesting tables:
+
+```sql
+-- One row per actual driving session, written when the driver punches out.
+trip_segment (
+  id, driver_id, vehicle_id, started_at, ended_at,
+  km_driven, route_id, break_minutes,
+  origin_state, destination_state
+)
+
+-- One row per active dispatch decision; the working set the planner manipulates.
+dispatch_candidate (
+  driver_id, route_id, vehicle_id, score,
+  violates_rule TEXT[], computed_at
+)
+```
+
+The `dispatch_candidate` table is regenerated on every planning pass. The `violates_rule` array lists which regulations a candidate assignment would break — the planner sorts candidates by score and surfaces the top N to the dispatcher with the violation set rendered next to each. Dispatchers can override (with a captured reason), but every override is logged.
+
+The audit log was the unblocker for the labour-inspector concern. The operator could show the inspector: "every shift exception in the last six months has a captured reason and the dispatcher who signed off." Before Routemate, that data did not exist in writable form.
+
+## Deployment
+
+The deployment story is unglamorous and worth describing because it's where I burned the most time. The operator's IT infrastructure is one mid-spec VM in a Hyderabad-area data centre. No Kubernetes, no managed Postgres, no observability stack. I shipped this as a single Docker Compose file with PostgreSQL, Redis, the NestJS API, and a Caddy reverse proxy.
+
+The deployment script does three things: pulls the new image, runs database migrations, and swaps the running container. Migrations run before the swap; if a migration fails, the deploy aborts and the old container keeps serving. If the migration succeeds but the new container fails to start, the script restores the previous image tag from a local file. There's no fancy orchestration — it's 80 lines of bash and a `migrate-up.sql` per release.
+
+I have shipped 23 releases through this pipeline. Zero have required a manual rollback.
+
+## What I'd do differently
+
+- I'd put the shift projection in the database from day one. Doing it in Redis was the right *performance* call, but having two sources of truth for "what's a driver's current state" turned into a debugging hazard. The next version would use a materialized view in PostgreSQL with `REFRESH MATERIALIZED VIEW CONCURRENTLY`. Same latency, one source of truth.
+- I'd have written the audit-log query interface earlier. For the first two months, I was the only person who could answer "show me every override in October." That interface should have been the second screen, not the seventh.
+- I'd ship a worker-side metric exporter on day one. The shift-projection worker silently fell behind for 36 hours during Diwali when a SQL migration locked the `trip_segment` table. Nobody noticed until the dispatchers reported "the system says everyone is available." Basic counters on projection-update lag would have caught it the first hour.

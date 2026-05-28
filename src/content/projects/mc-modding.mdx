@@ -1,0 +1,55 @@
+---
+title: MC Modding
+subtitle: A horror mod built on bytecode-level hooks into legacy Minecraft Java
+stack:
+  - Java 8
+  - Minecraft Forge
+  - Mixin
+  - ASM
+  - Gradle
+role: Sole engineer
+status: Archived
+links:
+  - label: curseforge
+    href: https://www.curseforge.com/minecraft/mc-mods/bmonesh-mod
+featured: false
+draft: false
+---
+
+## What I built
+
+A horror-themed mod for Minecraft Java Edition targeting version 1.16.5. The mod adds a single new entity — a slow, soundless mob that spawns only in fully-enclosed dark spaces, only at night, and only when the player has been mining without surfacing for at least twenty minutes. The mob does not pursue the player; it appears in the player's peripheral field-of-view distance, then disappears when the player turns to face it. Vanilla Minecraft has no peripheral-vision concept and no "has-not-surfaced" timer; both had to be added.
+
+It was downloaded around 600 times in the four months I maintained it. The Reddit threads about whether the mob was "real" or a placebo effect of dim lighting were better than the download number suggests.
+
+## The legacy Java surface
+
+Minecraft is a Java application that ships obfuscated. Class names, method names, and field names are single-letter identifiers — `class a extends c implements d`. The community ships mapping files (MCP, then Mojang's own mappings starting around 1.14) that translate the obfuscated names to human-readable ones at compile time. You write your mod against `EntityPlayer.swingArm()`, the Forge build system remaps it to the obfuscated runtime class names at jar-packing time, and the resulting mod targets the obfuscated runtime classes.
+
+The mapping coverage is good for public methods. It is incomplete for private methods, local variables in deobfuscated method bodies, and anything that changed between minor versions. I chose 1.16.5 because the mapping coverage for that version was effectively complete by the time I started, and because it was the modal version on the modded-Minecraft side of the player base.
+
+## Bytecode manipulation
+
+Minecraft does not expose extension points for what I needed. There is no vanilla event for "the player has been below Y-level Z for N minutes." To add behavior of that kind, you either replace a class wholesale (fragile; breaks any other mod that touches the same class) or you inject bytecode into the original class at runtime. The second approach is what Mixin enables.
+
+A Mixin module looks like a Java class annotated with `@Mixin(TargetClass.class)`. Methods inside annotated with `@Inject`, `@Redirect`, or `@Overwrite` patch the target class at class-load time. The Mixin runtime parses the bytecode of the target, splices the patch in, and feeds the modified bytecode to the JVM's classloader.
+
+The surfacing-timer worked by `@Inject`-ing into `ServerPlayerEntity.tick()` with an `at = @At("TAIL")`. The injection sampled the player's Y-coordinate and surface-exposure (whether the player could see the sky in a 5-block cone above their head), wrote to a per-player counter, and reset the counter when the conditions broke. The counter was the gate condition for the spawn check.
+
+Doing this correctly required understanding Java bytecode at a granularity I had previously avoided. A typical injection wrote about ten lines of Java but compiled to ~40 bytecode instructions, and the `@At` selector had to point at the right instruction inside the target method. I learned to read JVM bytecode in a deobfuscated viewer well enough to confirm my `@At` targets resolved to the instructions I intended.
+
+## Game state hooks
+
+The peripheral-vision logic is where the mod earned its strangeness. Minecraft's renderer culls entities outside the player's view frustum, which is why looking around in vanilla never changes whether an entity is "there." For the mod, I needed the inverse: the entity should exist in the world (so the server tracks it) but be visible only when the player is *not* looking at it.
+
+The implementation hooked into the client-side rendering pipeline rather than the server-side entity logic. A Mixin into the entity-renderer dispatch read the camera's facing vector and the entity's world position, computed the angle between them, and skipped the render call when the angle was inside the player's central 30-degree cone. The entity continued to exist on the server and on other clients; only the local client suppressed the render.
+
+The most error-prone part was tick-loop work. Minecraft ticks 20 times per second on both client and server, and any logic that runs every tick can drag the game's frame rate if it does too much work. The peripheral-vision check ran every render frame, not every tick — that's potentially 60+ times per second. The first version did a per-entity facing check against every loaded entity in the world; on a moderately-populated chunk that was a 4-frame-per-second hit.
+
+The fix was to gate the check on an entity tag. Only entities tagged with the mod's marker component ran through the peripheral check; everything else used the vanilla render path. The per-frame cost dropped to under a tenth of a millisecond on the same load.
+
+## What I'd do differently
+
+- I'd target a single Minecraft version from day one without aspirations. I drafted plans to forward-port to 1.18 and 1.19 and never executed; the half-finished port branches sat in the repo for a year as evidence of scope creep. The next mod I write — if I write another — will be a single-version artefact and I will close the repository when I stop maintaining it.
+- I'd write integration tests against a headless Minecraft client from the start. I tested manually for the entire life of the mod and shipped two regressions that a smoke test would have caught. A headless Minecraft setup is non-trivial but it is a one-time cost.
+- I'd commit harder to the horror brief. The peripheral-vision entity worked; the other ambitions (custom sound triggers, lore item drops, weather-tied spawn windows) were started and never finished. Shipping one feature well would have been a better artefact than three features half-done.
