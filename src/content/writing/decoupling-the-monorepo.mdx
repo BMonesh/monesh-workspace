@@ -1,31 +1,75 @@
 ---
 title: Decoupling the Monorepo
-subtitle: When the shared-tooling tax exceeds the integration discount
-lede: Most monorepos start as a tooling reflex and end as an organizational liability. Here's how I'd notice early and what I'd do about it.
-readingTime: 12
+subtitle: How I used Claude Code to map a graph I couldn't read
+lede: I was handed a monorepo I had two days to understand. I gave the agent a scoped task and a strict output format. It produced a dependency graph that revealed the real shape of the codebase — and the right place to cut.
+readingTime: 9
+publishedAt: 2026-04-15
+featured: true
 draft: false
 ---
 
-## The premise
+## The handoff
 
-The monorepo argument is usually framed as a question of dependency consistency. That's a real benefit, but it's a second-order one — the first-order benefit is reduced communication overhead between teams that ship the same surface[^1].
+I joined a team mid-quarter to ship a feature on a host application that everyone said was "tightly coupled to the shared libraries." The shared libraries lived in the same monorepo as the host app — twelve packages, no documentation explaining which package depended on which, and a `tsconfig` with paths that resolved transitively in ways nobody could quote from memory.
 
-When teams stop shipping the same surface, the communication overhead reverses. The shared tooling layer becomes a coordination tax instead of a coordination discount.
+The feature work was blocked. Every change to the host app rebuilt half the workspace, broke unrelated package tests, and required a review from three teams that did not have time to review it. The exit plan everyone agreed on was "decouple the shared libs from the host so the host can move independently." Nobody had time to do it.
 
-## How to notice
+I had four working days before sprint planning to come back with a proposal.
 
-The clearest signal is `git log --stat` over six months. If 80% of commits touch one team's directory and not the rest, the integration value of the monorepo is approaching zero.
+## The wrong instinct
+
+The instinct was to start reading. Open the host app's `package.json`, walk its imports, follow the trail. I tried this for an hour and got nowhere useful. The imports were honest; they pointed at the shared packages. What I needed was the transitive shape — which shared package imported which other shared package, which of them re-exported types the host app consumed without realizing, and which were genuinely standalone.
+
+Manual tracing through twelve packages with cross-edges would have taken the four days and produced a graph I would not trust because I would have lost track halfway through. The cost of getting it wrong was high: a decoupling plan based on a graph with missing edges would prescribe cuts that broke things at integration.
+
+## What I gave the agent
+
+I opened Claude Code with the repository as its working directory and gave it one task: enumerate the dependency graph as machine-readable JSON. I was explicit about the output format because I wanted the result to flow into a visualizer without me reformatting anything.
 
 ```ts
-const team = (commit: Commit) =>
-  commit.files[0]?.split('/')[1] ?? 'unknown';
-const histogram = countBy(commits.map(team));
+// Prompt scaffold I committed to scripts/graph-prompt.md
+// so I could re-run the agent against future repo states.
+type Edge = {
+  from: string;
+  to: string;
+  via: string[];
+  kind: 'value' | 'type';
+};
+
+type Node = {
+  name: string;
+  path: string;
+  exports: string[];
+  consumers: string[];
+};
 ```
+
+I told the agent: walk every `package.json` in the workspace, parse every TypeScript file under each package's `src/`, resolve every import path against the workspace `tsconfig`, classify each edge as `value` or `type`, and emit the result as one JSON document. No prose, no commentary — just the JSON. If a file failed to parse, report it as a warning at the end.
+
+The work took the agent about eleven minutes. The output was 1,847 edges across the twelve packages. Forty-three of those edges were unique cross-edges — distinct `(from, to)` pairs. The rest were duplicates from the same edge appearing in multiple files.
+
+## What the graph said
+
+Two things stood out the moment I loaded the graph into a visualizer.
+
+First, three of the twelve packages had no consumers other than the host app. They had been written as "shared" but the rest of the workspace did not import them. They were not shared in any meaningful sense — they were the host app, scattered.
+
+Second, of the remaining nine packages, six had a single cross-edge each. These were thin re-exports: a package called `@org/api-types` was imported by `@org/api-client`, which was imported by the host. The `@org/api-types` package was not standalone work — it was a layering artifact from a previous reorganization that nobody had collapsed.
+
+The genuinely shared code lived in three packages, used by four or more consumers each. Those were the real shared libraries. The other nine were a mix of host-app code that had been split out for reasons nobody could remember and re-export shims with no functional content.
+
+## The decoupling
+
+Once the graph was on screen, the plan was obvious. Move the three host-only packages into the host's own source tree. Collapse the six re-export shims into their callers. Leave the three genuine shared packages where they were and stop treating the others as load-bearing.
+
+The cuts were mechanical at that point. I wrote the package-moves as a single script that walked the graph output, generated the file moves, updated the consumer imports, and ran the workspace's existing typecheck after each batch. The script took three hours to write and ran in under a minute. Total wall-clock for the decoupling: two days, mostly spent on test fixes from the shifted import paths.
+
+The host app's CI time dropped from 14 minutes to 5 minutes 30 seconds, because it now rebuilt only its own code and three actual shared packages instead of the full workspace. The cross-team review burden disappeared because the host's package no longer touched files anyone else owned.
 
 ## What I'd do differently
 
-- Start with a polyrepo and consolidate later if integration friction actually shows up.
-- Treat the build orchestrator as replaceable infrastructure, not as the organizational center.
-- Measure the coordination tax explicitly — PR review latency across team boundaries is the cleanest proxy.
+- I'd have run the graph extraction on day one of joining, not on day four. The graph took eleven minutes; reading code for three days produced less information than reading the graph for ten minutes.
+- I'd have committed the prompt scaffold sooner. The first version of the prompt was inline in the agent session; I copied it into `scripts/graph-prompt.md` only after the second run. That file is now the source of truth and anyone on the team can regenerate the graph in under fifteen minutes.
+- I'd have validated the agent's classification of `value` vs `type` imports more carefully. The agent got it right, but I checked by spot-sampling. For a load-bearing artifact, I would now add a verification pass: run TypeScript with `--listFiles --listEmittedFiles` and cross-check that the agent's edge count matches the compiler's. Trust the agent's outputs, verify them against the ground truth, and codify the verification so the next person doesn't have to re-derive it.
 
-[^1]: This is the version of the argument I find most defensible. Conway's Law isn't a metaphor here — it's a literal repository-topology constraint.
+The lesson I keep relearning is that agentic tools are good at the parts of engineering work that are mechanical at scale. A dependency graph extraction over a twelve-package workspace is mechanical at scale. The judgment calls — which cuts to make, in what order, under what risk — are still mine. The agent does not save me from making those calls; it gets me to the point where I can make them faster.

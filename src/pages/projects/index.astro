@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('projects', ({ data }) => !data.draft);
+
+const statusOrder: Record<string, number> = {
+  Shipped: 0,
+  WIP: 1,
+  Archived: 2,
+};
+
+const sorted = all.sort((a, b) => {
+  const sa = statusOrder[a.data.status];
+  const sb = statusOrder[b.data.status];
+  if (sa !== sb) return sa - sb;
+  return a.data.title.localeCompare(b.data.title);
+});
+
+const count = sorted.length;
+---
+
+<Base
+  title="projects — monesh"
+  description="Engineering projects by Monesh B."
+>
+  <Breadcrumb />
+  <h1 class="index-h1">projects</h1>
+  <p class="index-subline">
+    {count} {count === 1 ? 'entry' : 'entries'} &middot; ordered by status, then title
+  </p>
+  {
+    count === 0 ? (
+      <p class="index-empty">no entries yet</p>
+    ) : (
+      <ul class="index-list" role="list">
+        {sorted.map((entry) => {
+          const status = entry.data.status.toLowerCase();
+          return (
+            <li>
+              <a
+                class="index-row index-row-projects"
+                href={`/projects/${entry.slug}`}
+              >
+                <span class="index-slug">{entry.slug}</span>
+                <span class={`index-status status-${status}`}>{status}</span>
+                <span class="index-desc">{entry.data.subtitle ?? ''}</span>
+                <span class="index-featured" aria-hidden="true">
+                  {entry.data.featured ? '★' : ''}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    )
+  }
+</Base>

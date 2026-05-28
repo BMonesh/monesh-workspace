@@ -696,3 +696,140 @@ pre.astro-code[data-line-numbers] .line::before {
 .footnote-rail a.depth-3 {
   padding-left: 0.6em;
 }
+
+/* ============================================================
+   Index list views — projects + writing (PR 5)
+   ============================================================ */
+
+.index-h1 {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0 0 0.2em;
+  letter-spacing: -0.005em;
+}
+
+.index-subline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  margin: 0 0 0.8em;
+  padding-bottom: 0.8em;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.index-list > li {
+  border-bottom: 0.5px solid var(--border);
+}
+
+.index-list > li:last-child {
+  border-bottom: 0;
+}
+
+.index-row {
+  display: grid;
+  align-items: baseline;
+  padding: 7px 8px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  text-decoration: none;
+  gap: 12px;
+}
+
+.index-row:hover {
+  background: var(--paper-3);
+}
+
+.index-row:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.index-row[aria-current='page'] {
+  background: var(--accent-bg);
+  color: var(--accent-ink);
+}
+
+.index-row-projects {
+  grid-template-columns: minmax(140px, 1fr) 90px minmax(0, 2fr) 16px;
+}
+
+.index-row-writing {
+  grid-template-columns: minmax(200px, 1fr) 100px 70px minmax(0, 2fr) 16px;
+}
+
+.index-slug {
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.index-row:hover .index-slug,
+.index-row[aria-current='page'] .index-slug {
+  color: inherit;
+}
+
+.index-status {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.index-status.status-shipped {
+  color: var(--ink-3);
+}
+
+.index-status.status-wip {
+  color: var(--accent);
+}
+
+.index-status.status-archived {
+  color: var(--mute-2);
+}
+
+.index-date,
+.index-readtime {
+  color: var(--mute);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.index-desc {
+  color: var(--mute);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.index-featured {
+  color: var(--ink-3);
+  font-size: 10px;
+  text-align: right;
+}
+
+.index-row[aria-current='page'] .index-status,
+.index-row[aria-current='page'] .index-date,
+.index-row[aria-current='page'] .index-readtime,
+.index-row[aria-current='page'] .index-desc,
+.index-row[aria-current='page'] .index-featured {
+  color: var(--accent-ink);
+}
+
+.index-empty {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mute);
+  padding: 12px 8px;
+  font-style: italic;
+}

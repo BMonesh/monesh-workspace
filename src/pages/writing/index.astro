@@ -1,0 +1,61 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('writing', ({ data }) => !data.draft);
+
+const sorted = all.sort((a, b) => {
+  const da = a.data.publishedAt?.getTime() ?? -Infinity;
+  const db = b.data.publishedAt?.getTime() ?? -Infinity;
+  return db - da;
+});
+
+const count = sorted.length;
+
+function formatDate(d: Date | undefined): string {
+  if (!d) return '—';
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+---
+
+<Base title="writing — monesh" description="Essays by Monesh B.">
+  <Breadcrumb />
+  <h1 class="index-h1">writing</h1>
+  <p class="index-subline">
+    {count} {count === 1 ? 'entry' : 'entries'} &middot; ordered by date
+  </p>
+  {
+    count === 0 ? (
+      <p class="index-empty">no entries yet</p>
+    ) : (
+      <ul class="index-list" role="list">
+        {sorted.map((entry) => (
+          <li>
+            <a
+              class="index-row index-row-writing"
+              href={`/writing/${entry.slug}`}
+            >
+              <span class="index-slug">{entry.slug}</span>
+              <span class="index-date">
+                {formatDate(entry.data.publishedAt)}
+              </span>
+              <span class="index-readtime">
+                {entry.data.readingTime ? `${entry.data.readingTime} min` : '—'}
+              </span>
+              <span class="index-desc">
+                {entry.data.lede ?? entry.data.subtitle ?? ''}
+              </span>
+              <span class="index-featured" aria-hidden="true">
+                {entry.data.featured ? '★' : ''}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>

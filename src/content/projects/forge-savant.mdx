@@ -1,11 +1,11 @@
 ---
 title: Forge Savant
-subtitle: Build-system observability for monorepos
+subtitle: A graph model for PC part compatibility
 stack:
   - TypeScript
-  - Bun
-  - esbuild
-  - Cloudflare Workers
+  - SQLite
+  - Drizzle
+  - Hono
 role: Sole engineer
 status: WIP
 links:
@@ -15,28 +15,88 @@ featured: true
 draft: false
 ---
 
-## What it is
+## The problem
 
-A build-system observability layer for monorepos that surfaces per-target hit/miss telemetry without a vendor in the middle. Drops in next to `turbo` or `nx` and emits trace events compatible with OpenTelemetry.
+Anyone who has built a desktop has hit this: you pick a CPU, then realize the motherboard you wanted uses a different socket. You swap the board, then your RAM is the wrong generation. You swap the RAM, then the cooler doesn't clear the case. Compatibility in PC building is not a single dimension — it's a web of constraints that interlock.
 
-The interesting part is the `forge-savant.config.ts` schema — see below for the minimum-viable shape.
+Most "PC builders" on retail sites treat parts as a flat catalog. They check a handful of well-known constraints (socket type, memory generation) and miss the long tail (PCIe lane counts, case clearances, PSU connector flavors, M.2 slot keying). The user gets a list of "compatible" parts that quietly fails at the third or fourth interlock.
 
-## Configuration
+Forge Savant is my attempt at doing the modeling correctly.
 
-```ts lineNumbers
-import { defineConfig } from 'forge-savant';
+## Why a flat catalog fails
 
-export default defineConfig({
-  cache: { strategy: 'content-addressed' },
-  emit: { sinks: ['otlp', 'stdout'] },
-  targets: {
-    build: { runner: 'bun', timeoutMs: 300_000 },
-  },
-});
+The first version of this used a flat parts table with hardcoded compatibility rules per category. Every time I added a new constraint — say, "the cooler height in mm must be less than the case's max cooler height" — I had to update every component that consumed compatibility data. The rule logic spread across the codebase. Adding a new component category meant a survey of which other categories cared about it.
+
+The flat model also encouraged a category-pair mindset: "CPU vs motherboard," "RAM vs motherboard," "GPU vs case." But real compatibility is N-ary. A 360mm AIO is compatible with a case only if the case also has the radiator mounting points free of a top-mounted PSU, which is itself a function of the PSU's form factor. That's three nodes, two constraints, one resolution.
+
+## Nodes and edges
+
+The right model is a graph. Each part is a node. Each node carries two arrays:
+
+```ts
+type Part = {
+  id: string;
+  category:
+    | 'cpu'
+    | 'motherboard'
+    | 'ram'
+    | 'gpu'
+    | 'psu'
+    | 'case'
+    | 'cooler'
+    | 'storage';
+  offers: Edge[];
+  requires: Edge[];
+};
+
+type Edge = {
+  kind: string;
+  attrs: Record<string, string | number>;
+};
 ```
+
+A CPU `offers` a `{ kind: 'cpu-socket', attrs: { socket: 'LGA1700' } }` edge and `requires` a `{ kind: 'cpu-cooler', attrs: { tdp: 125 } }` edge. A motherboard `requires` a matching `cpu-socket` edge from a CPU, `offers` `memory-channel` edges (typically 2 or 4), `offers` `pcie-slot` edges, `requires` an ATX/mATX/ITX form-factor edge from the case, and so on.
+
+A build is valid when every `requires` edge on every selected node is satisfied by an `offers` edge on some other selected node.
+
+## The edge kinds I've defined so far
+
+A snapshot from `src/edges/kinds.ts`:
+
+- `cpu-socket` — string equality on socket name (LGA1700, AM5, etc.)
+- `memory-channel` — DDR generation and channel count
+- `pcie-slot` — slot generation, lane count, physical length
+- `m2-slot` — keying (M, B+M), lane source (CPU vs chipset), supported length
+- `cpu-cooler` — TDP capacity ≥ CPU TDP; socket compatibility
+- `case-cooler-clearance` — case max cooler height ≥ cooler height
+- `case-gpu-clearance` — case max GPU length ≥ GPU length
+- `case-radiator-mount` — case mount positions × supported radiator sizes
+- `psu-cable` — required power connectors (CPU 8-pin, PCIe 12VHPWR) × PSU offered cables
+- `form-factor` — case supports motherboard size (ATX/mATX/ITX)
+
+Each kind has a registered matching predicate. Adding a new constraint is two edits: define the kind, register the predicate. The validator itself has no knowledge of what `pcie-slot` means.
+
+## Validation as graph satisfaction
+
+Validation reduces to a constraint-satisfaction pass. I walk the selected parts, collect their `requires` and `offers`, and check that each `requires` edge has a matching `offers` from another node. The matching predicate is per-edge-kind — for `cpu-socket` it's strict string equality on the socket attribute; for `memory-channel` it's a count comparison (you can't put 8 sticks in a 4-channel board); for `case-cooler-clearance` it's a numeric inequality.
+
+The interesting bit is that this generalizes. The validator is ~80 lines and has not grown since the third edge kind landed. Every new constraint slots into the existing pass.
+
+The graph also gives me good error messages for free. When a build is invalid, I can return the unsatisfied edges directly: "your RAM requires DDR5; your motherboard does not offer a DDR5 memory channel." This is the kind of message a flat-rule system has to assemble manually for each category pair.
+
+## Where the graph helps beyond validation
+
+The same model drives the picker UI. When you've selected a CPU and motherboard but no RAM, the UI shows you the open `memory-channel` edges on the motherboard — "you have 4 DDR5 channels available; pick RAM that requires this kind." Filtering the parts catalog becomes "find all parts whose `requires` edges are a subset of the build's currently-unsatisfied `offers` edges." It's the same query the validator runs, just in the opposite direction.
+
+I also use it for upgrade-path planning. Given a current build and a budget, the planner walks parts that would satisfy currently-unsatisfied edges, ranks them by price-per-improvement, and shows you what the next upgrade should be.
 
 ## What I'd skip next time
 
-- The fancy custom cache adapter. Just use the host CI's cache.
-- Premature pluggability on the emit sinks.
-- Treating the orchestrator as a framework instead of a library.
+- The category-completeness rules. I built a separate layer that enforces "a valid build must have exactly one CPU, exactly one motherboard, at least one storage device." This belongs in the edge model — make the CPU socket a required edge on the motherboard side, and category completeness falls out of the same validator. I have not yet pulled this together; it's the next refactor.
+- The TypeScript `as const` plumbing on edge kinds. I spent a week getting the discriminated-union types right and ended up wishing I had just used a string-keyed registry. The compile-time exhaustiveness check was not worth the friction.
+- The retail-price scraper. Compatibility is a more interesting problem than price; I should have shipped the validator first and tacked pricing on later.
+
+## What I'd add
+
+- A power-draw attribute on `psu-cable` edges. Validation right now checks "do all the cables connect" — but it doesn't catch "the build draws 850W on a 750W PSU under load." That's a numeric constraint I haven't modeled yet.
+- BIOS update tracking. A motherboard might support a CPU only after a BIOS update; the edge offered by the board changes after the user does a flash. Modeling "before/after" states would be useful but I haven't figured out the UX for it.

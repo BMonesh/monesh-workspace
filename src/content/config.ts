@@ -23,6 +23,7 @@ const projects = defineCollection({
 });
 
 // Spec §4.3 — essay frontmatter: title, subtitle, lede, readingTime, draft.
+// `publishedAt` and `featured` are PR 5 additions for the writing index.
 const writing = defineCollection({
   type: 'content',
   schema: z.object({
@@ -30,6 +31,8 @@ const writing = defineCollection({
     subtitle: z.string().optional(),
     lede: z.string().optional(),
     readingTime: z.number().int().positive().optional(),
+    publishedAt: z.date().optional(),
+    featured: z.boolean().default(false),
     draft: z.boolean().default(false),
   }),
 });
